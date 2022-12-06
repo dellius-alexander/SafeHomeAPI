@@ -1,0 +1,9 @@
+/**/*.env
+/**/.idea
+/**/.DS_Store
+/**/.certs
+/**/node_modules
+/**/acerts
+/**/dist
+/**/.well-known
+/**/package-lock.json

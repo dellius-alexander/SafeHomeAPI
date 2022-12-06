@@ -1,0 +1,208 @@
+
+#############################################################################################################
+# Start your application services by typing at the Docker CLI:
+#     ~$> docker-compose -f <"a unique name">.docker-compose.yml up -d
+# Shutdown services with the Docker CLI command:
+#     ~$> docker-compose -f  <"a unique name">.docker-compose.yml down --remove-orphans
+#     The "--remove-orphans" flag is used to remove any child container instances that may have been created
+# Build, remove orphaned containers and refresh services:
+#     ~$> docker-compose -f docker-compose.yml up --always-recreate-deps --renew-anon-volumes --remove-orphans --force-recreate -d --build
+#############################################################################################################
+version: '3.8'
+services:
+#  # node backend service
+#  frontend:
+##    image: node:18
+#    build:  # project contents imported into Dockerfile at build time
+#      context: .
+#      dockerfile: .devcontainer/backend.Dockerfile
+#      args:
+#        NODE_VERSION: ${NODE_VERSION}
+#        NODE_ENV: ${NODE_ENV}
+#        DOMAIN_BASENAME: ${DOMAIN_BASENAME}
+#        APP_HOME: ${APP_HOME}
+#        DOMAIN_NAME: ${DOMAIN_NAME}
+#        TZ: ${TZ}
+#        LISTEN_PORT: ${FRONTEND_PORT}
+#        HOSTNAME: ${HOSTNAME}
+#    container_name: resume-frontend
+#    user: ${NODE_USER}
+#    hostname: frontend.${HOSTNAME}
+#    working_dir: ${APP_HOME}
+#    env_file:
+#      - .devcontainer/backend.env
+#    expose:
+#      - ${FRONTEND_PORT}
+#    ports:
+#      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+#    volumes:
+#      - ./:${APP_HOME}
+#    restart: on-failure
+##    command:
+##      - /bin/sh
+##      - -c
+##      - |
+##        sh -c "npm install" &&
+##        sh -c "npm run dev"
+##        sh -c 'echo Environment: "${NODE_ENV}"'
+#    depends_on:
+#      - backend
+#    links:
+#      - backend
+#    networks:
+#      frontend:
+  # Backend API service
+  backend:
+#    image: node:18
+    build:  # project contents imported into Dockerfile at build time
+      context: .
+      dockerfile: ${BACKEND_DOCKERFILE}
+      args:
+        NODE_VERSION: ${NODE_VERSION}
+        NODE_ENV: ${NODE_ENV}
+        DOMAIN_BASENAME: ${DOMAIN_BASENAME}
+        DOMAIN_NAME: ${DOMAIN_NAME}
+        TZ: ${TZ}
+        LISTEN_PORT: ${BACKEND_PORT}
+        HOSTNAME: ${HOSTNAME}
+        USERNAME: ${USERNAME}
+        UUID: ${UUID}
+#    container_name: backend
+    hostname: ${HOSTNAME} backend.${HOSTNAME}
+    working_dir: ${WORKDIR}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    env_file:
+      - ${BACKEND_ENV}
+    expose:
+      - ${BACKEND_PORT}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    volumes:
+      - ${BACKEND_VOL}
+#    restart: on-failure
+#    entrypoint: /entrypoint/entrypoint.sh
+#    depends_on:
+#      - mongodb
+#    links:
+#      - mongodb
+    networks:
+      backend:
+#    entrypoint: /entrypoint/entrypoint.sh
+#    command:
+#      - /bin/sh
+#      - -c
+#      - |
+#        sh -c "npm install" &&
+#        sh -c "npm run dev"
+
+#  # mongo-express service
+#  mongo-express:
+#    image: mongo-express:latest
+#    container_name: mongo-express
+#    restart: on-failure
+#    environment:
+#      ME_CONFIG_MONGODB_AUTH_DATABASE: 'db'  # Database name
+##      ME_CONFIG_BASICAUTH_USERNAME:  ${MONGODB_USER}
+##      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGODB_PASSWD}
+#      ME_CONFIG_MONGODB_AUTH_USERNAME: ${MONGODB_USER} # Database username
+#      ME_CONFIG_MONGODB_AUTH_PASSWORD: ${MONGODB_PASSWD} # Database password
+#      ME_CONFIG_MONGODB_URL: "mongodb://${MONGODB_USER}:${MONGODB_PASSWD}@mongodb:27017/"
+#      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true' # Enable admin access to all databases.
+#    ports:
+#      - "8081:8081"
+#    depends_on:
+#      - mongodb
+#    links:
+#      - mongodb
+#    networks:
+#      backend:
+#
+#  # mongodb service
+#  mongodb:
+#    #image: mongo:6.0.2
+#    build: # project contents imported into Dockerfile at build time
+#      context: .
+#      dockerfile: ${MONGODB_DOCKERFILE}
+#    container_name: mongodb
+#    restart: on-failure
+#    env_file:
+#      - ${MONGODB_ENV}
+#    volumes:
+#      - ${MONGODB_VOL}
+#      - .devcontainer/scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+#    expose:
+#      - ${MONGO_PORT}
+#    ports:
+#      - ${MONGO_PORT}:${MONGO_PORT}
+#    networks:
+#      backend:
+#    command: mongod --serviceExecutor adaptive
+#  # Email Engine
+#  email_engine:
+#    restart: always
+#    image: andris9/emailengine:latest
+#    ports:
+#      # API and web interface
+#      - '3000:3000'
+#      # SMTP for message submission
+#      - '2525:2525'
+#    depends_on:
+#      - redis
+#    links:
+#      - redis
+#    environment:
+#      # Configuration to EmailEngine can be passed via environment variables
+#      # For full list see https://github.com/postalsys/emailengine#config-mapping
+#
+#      # Settings to write to v1/settings on startup (https://api.emailengine.app/#operation/postV1Settings)
+#      # The following value is a YAML block scalar string, so make it sure it is properly indented
+#      # This configuration enables SMTP server for local submission
+#      EENGINE_SETTINGS: >
+#        {
+#            "smtpServerEnabled": true,
+#            "smtpServerPort": 2525,
+#            "smtpServerHost": "0.0.0.0",
+#            "smtpServerAuthEnabled": true,
+#            "smtpServerPassword": "${EENGINE_SECRET}"
+#       }
+#
+#      # Encryption secret
+#      EENGINE_SECRET: /run/secrets/eengine_secret
+#      # Database connection URL
+#      EENGINE_REDIS: 'redis://redis:6379/2'
+#    secrets:
+#      - eengine_secret
+#
+#  redis:
+#    image: redis:alpine
+#    restart: always
+#    volumes:
+#      - redis-volume:/data
+#
+# Define application network
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+#  frontend:
+#    driver: bridge
+#    ipam:
+#      driver: default
+#
+# Define mongodb volume
+volumes:
+  mongodb-volume: null
+#  redis-volume: null
+#
+# Email service
+#secrets:
+#  email_username:
+#    file: ./.devcontainer/email_username.txt
+#  email_password:
+#    file: ./.devcontainer/email_password.txt
+#  eengine_secret:
+#    file: ./.devcontainer/eengine_secret.txt
