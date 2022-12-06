@@ -2,7 +2,7 @@
   "name": "api-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "./bin/api.js",
   "scripts": {
     "start": "node ./bin/api",
     "dev": "nodemon ./bin/api",

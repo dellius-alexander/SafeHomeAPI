@@ -54,7 +54,7 @@ const register = async function (req, res) {
         let newUser = {
             name: name,
             email: email,
-            dob: dob,
+            dob: new Date(dob).getDate(),
             password: encryptedPasswd,
             roles: [role.role],
             token: apiToken,
