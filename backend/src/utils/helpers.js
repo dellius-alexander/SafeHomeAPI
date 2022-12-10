@@ -1,19 +1,53 @@
 
 const { readFileSync } = require('fs')
 const CryptoJS = require("crypto-js");
+const crypto = require("crypto");
 // get the public key
 const PUBLIC_KEY = readFileSync(process.env.PUBLIC_KEY_FILE, 'utf-8')
-console.log(PUBLIC_KEY)
+const PRIVATE_KEY = readFileSync(process.env.SSL_KEY_FILE, 'utf-8')
+
+const getEncryptedData = function (data) {
+    let params;
+    try {
+        console.log('Authorization: ')
+        console.log(data)
+        // const cypherText = CryptoJS.dec.Base64.parse(params.secureMessage)
+        console.log(data.length)
+
+        // const decryptedMessage = CryptoJS.RSA(params.secureMessage, PRIVATE_KEY)
+        let decryptedData = crypto.privateDecrypt({
+                key: PRIVATE_KEY,
+                // In order to decrypt the data, we need to specify the
+                // same hashing function and padding scheme that we used to
+                // encrypt the data in the previous step
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: "sha256",
+            },
+            Buffer.from(data.toString(), "base64")
+        );
+        params = JSON.parse(decryptedData.toString("utf-8"))
+
+        // The decrypted data is of the Buffer type, which we can convert to a
+        // string to reveal the original data
+        console.log("Decrypted data: ", params.email);
+        console.log("Params Count: ", Object.keys(params).length)
+    } catch (e) {
+        console.dir(e)
+        e.stackTrace
+    }
+    return params;
+}
 
 /**
  * Encrypt the given message using the PUBLIC_KEY
- * @param message
- * @returns {Promise<*>}
+ * @param {String} message the message to encrypt
+ * @param {CryptoJS.AES} algorithm encoding algorithm to use
+ * @returns {Promise<*>} a promise that will be fulfilled
  */
-const encrypt = function(message){
+const encrypt = function(message, algorithm){
     try {
         // Encrypt
-        let cypherText = CryptoJS.AES.encrypt(message,PUBLIC_KEY);
+        let cypherText = algorithm.encrypt(message,PRIVATE_KEY);
         console.log("CypherText: ",cypherText.toString());
         return cypherText.toString();
     } catch (e) {
@@ -23,19 +57,33 @@ const encrypt = function(message){
 
 /**
  * Decrypt the given message using the PUBLIC_KEY
- * @param message
- * @returns {Promise<string>}
+ * @param {String} message the message to decrypt
+ * @param {CryptoJS.AES} algorithm encoding algorithm to use
+ * @returns {Promise<*>} a promise that will be fulfilled
  */
-const decrypt = function(message) {
+const decrypt = function(message, algorithm) {
     try {
         // Decrypt
-        const bytes = CryptoJS.AES.decrypt(message, PUBLIC_KEY);
+        const bytes = algorithm.decrypt(message, PRIVATE_KEY);
         const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
         console.log("Decrypted Text: ",decryptedString);
         return decryptedString;
     } catch (e) {
         console.dir(e)
     }
+}
+
+/**
+ * Decrypt encrypted data using the provided algorithm, iv and key.
+ * @param { AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams} encrypted the encrypted message
+ * @param { BufferSource} iv the initialization vector
+ * @param {CryptoKey} key the encryption key
+ * @returns {string} decrypted message
+ */
+function decryptData(encrypted,iv,key){
+    const decrypted = CryptoJS.AES.decrypt(encrypted.toString(), key);
+    console.log(decrypted);
+    return decrypted.toString(CryptoJS.enc.Utf8)
 }
 
 /**
@@ -147,6 +195,8 @@ module.exports = {
     decrypt,
     isEmpty,
     checkForSearchFilters,
-    queryMessageFilter
+    queryMessageFilter,
+    decryptData,
+    getEncryptedData
 }
 

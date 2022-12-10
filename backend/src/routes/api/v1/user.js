@@ -37,6 +37,11 @@ const mailErrorCallback = function(msg, err){
 router.post('/register', register, mailErrorCallback);
 
 /**
+ * API endpoint used to create new users from registrations posts.
+ */
+router.get('/register', register, mailErrorCallback);
+
+/**
  * API endpoint to Login users
  * @path /login/?username=<username>&password=<password>
  */

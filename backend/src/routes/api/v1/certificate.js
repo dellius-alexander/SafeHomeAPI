@@ -14,10 +14,22 @@
  *    limitations under the License.
  */
 const express = require('express');
+const {readFileSync} = require("fs");
 const router = express.Router();
-const { getIndex } = require('../controllers/index')
+const PUBLIC_KEY = readFileSync(process.env.PUBLIC_KEY_FILE, 'utf-8')
 
 /* GET home page. */
-router.get('/', getIndex);
-router.post('/', getIndex);
+router.get('/certificate', (req,res) => {
+    const publicKey = req.headers.authorization = PUBLIC_KEY
+    console.log(publicKey)
+    // res.headers.authorization = PUBLIC_KEY
+    return res.status(200).json({publicKey : publicKey})
+
+});
+router.post('/certificate', (req,res) => {
+    const publicKey = req.headers.authorization = PUBLIC_KEY
+    console.log(publicKey)
+    return res.status(200).json({publicKey : publicKey})
+});
+
 module.exports = router;

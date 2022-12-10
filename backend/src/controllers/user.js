@@ -1,9 +1,12 @@
 const {
     encrypt,
     decrypt,
+    getEncryptedData
 } = require('../utils/helpers')
 const { User } = require('../model/user.model')
 const { UserRoleEnum } = require('../model/userRole.enum')
+const CryptoJS = require("crypto-js")
+
 
 
 /**
@@ -13,48 +16,52 @@ const { UserRoleEnum } = require('../model/userRole.enum')
  * @returns {Promise<*>}
  */
 const register = async function (req, res) {
+    let params
     try {
-        // console.log(req.body)
-        // get the request body for the new user
-        const params =
-            Object.keys(req.query).length !== 0 ? req.query :
-                Object.keys(req.body).length !== 0 ? req.body :
-                    Object.keys(req.params).length !== 0 ? req.params :
-                        undefined;
+        // get the request query object
+        params = Object.keys(req.query).length !== 0 ? req.query :
+                    Object.keys(req.body).length !== 0 ? req.body :
+                        Object.keys(req.params).length !== 0 ? req.params :
+                            undefined;
+
+
+        params = getEncryptedData(params.secureMessage)
+
+
+        // The decrypted data is of the Buffer type, which we can convert to a
+        // string to reveal the original data
+        console.log("Decrypted data: ", params);
 
         // check if the request is empty
-        if (params.length < 4) {
+        if (params === undefined || Object.keys(params).length  < 4) {
             return res.status(400).json({
                 error: 'Missing required fields'
             })
         }
 
-        console.log(req.headers)
-        console.log(req.ip)
-        console.log(JSON.stringify(params))
-
-        const {name, email, dob, password} = params
+        const { name, email, dob, password } = params
 
         if (!name || !email || !dob || !password) {
             return res.status(400).json({
                 error: 'Missing required fields',
             });
         }
-        const encryptedPasswd = encrypt(password)
+        const encryptedPasswd = encrypt(password, CryptoJS.AES)
         const timestamp = new Date().toISOString()
         let apiToken = encrypt(JSON.stringify({
             username: email,
             createdAt: timestamp,
             expireAt: 21600000 // 6|12|24 hours
-        })).toString()
+        }), CryptoJS.AES).toString()
         let role = await UserRoleEnum.findOne({role: 'USER'})
         if (!role){
             role = await UserRoleEnum.create({role: 'USER'})
         }
+        // create new user
         let newUser = {
             name: name,
             email: email,
-            dob: new Date(dob).getDate(),
+            dob: new Date(dob),
             password: encryptedPasswd,
             roles: [role.role],
             token: apiToken,
@@ -106,25 +113,31 @@ const register = async function (req, res) {
  * @returns {Promise<void>}
  */
 const login = async function(req, res) {
+    let params
     try {
         // get the request query object
-        const params =
-            Object.keys(req.query).length !== 0 ? req.query :
+        params =
+            (Object.keys(req.query).length !== 0 ? req.query :
                 Object.keys(req.body).length !== 0 ? req.body :
                     Object.keys(req.params).length !== 0 ? req.params :
-                        undefined;
+                        undefined);
+
+        params = getEncryptedData(params.secureMessage)
+        console.log("Decrypted Credentials: ", params);
+
         // check if the request is empty
-        if (params.length < 2) {
+        if (params === undefined || Object.keys(params).length  < 2) {
             return res.status(400).json({
                 message: 'Missing required fields',
                 success: false
             })
         }
-        console.log(req.headers)
-        console.log(req.ip)
-        console.log(JSON.stringify(params))
-        const { email, password } = params
-        console.log(`Email: ${email} | Password: ${await encrypt(password)}`)
+        // get user information from params
+        const email = params.email
+        const password = params.password
+
+        console.log(`Email: ${email} | Password: ${await encrypt(password, CryptoJS.AES)}`)
+
         if (email) { // if object exists
             // check if user already exists
             let user = await User.findOne({email: {$regex: email}})
@@ -132,7 +145,7 @@ const login = async function(req, res) {
             if (user) {
                 console.log("User information: ")
                 console.log(user)
-                let passwd = decrypt(user.password)
+                let passwd = decrypt(user.password, CryptoJS.AES)
                 const timestamp = new Date()
 
                 /*
@@ -141,7 +154,7 @@ const login = async function(req, res) {
                  */
                 if (passwd === password){
                     //
-                    let oldToken = JSON.parse(decrypt(user.token))
+                    let oldToken = JSON.parse(decrypt(user.token, CryptoJS.AES))
                     console.log("Old token: ")
                     console.log(oldToken)
                     const oldTimestamp = new Date(oldToken.createdAt)
@@ -158,7 +171,7 @@ const login = async function(req, res) {
                             username: email,
                             createdAt: timestamp.toISOString(),
                             expireAt: 21600000 // 6|12|24 hours
-                        })).toString()
+                        }), CryptoJS.AES).toString()
 
                         // update user token and __revision_history
                         await User.findOneAndUpdate(
@@ -196,7 +209,7 @@ const login = async function(req, res) {
                 }
             }
             // else send an error message back to client
-            return res.status(404).json({error: 'User not found'})
+            return res.status(404).json({error: 'User not found, or your username/password is incorrect '})
         } else {
             return res.status(422).json({
                 error: 'Missing required fields',

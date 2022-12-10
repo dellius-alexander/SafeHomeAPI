@@ -10,50 +10,50 @@
 #############################################################################################################
 version: '3.8'
 services:
-#  # node backend service
-#  frontend:
-##    image: node:18
-#    build:  # project contents imported into Dockerfile at build time
-#      context: .
-#      dockerfile: .devcontainer/backend.Dockerfile
-#      args:
-#        NODE_VERSION: ${NODE_VERSION}
-#        NODE_ENV: ${NODE_ENV}
-#        DOMAIN_BASENAME: ${DOMAIN_BASENAME}
-#        APP_HOME: ${APP_HOME}
-#        DOMAIN_NAME: ${DOMAIN_NAME}
-#        TZ: ${TZ}
-#        LISTEN_PORT: ${FRONTEND_PORT}
-#        HOSTNAME: ${HOSTNAME}
-#    container_name: resume-frontend
-#    user: ${NODE_USER}
-#    hostname: frontend.${HOSTNAME}
-#    working_dir: ${APP_HOME}
-#    env_file:
-#      - .devcontainer/backend.env
-#    expose:
-#      - ${FRONTEND_PORT}
-#    ports:
-#      - ${FRONTEND_PORT}:${FRONTEND_PORT}
-#    volumes:
-#      - ./:${APP_HOME}
-#    restart: on-failure
-##    command:
-##      - /bin/sh
-##      - -c
-##      - |
-##        sh -c "npm install" &&
-##        sh -c "npm run dev"
-##        sh -c 'echo Environment: "${NODE_ENV}"'
-#    depends_on:
-#      - backend
-#    links:
-#      - backend
-#    networks:
-#      frontend:
+  #  # node backend service
+  #  frontend:
+  ##    image: node:18
+  #    build:  # project contents imported into Dockerfile at build time
+  #      context: .
+  #      dockerfile: .devcontainer/backend.Dockerfile
+  #      args:
+  #        NODE_VERSION: ${NODE_VERSION}
+  #        NODE_ENV: ${NODE_ENV}
+  #        DOMAIN_BASENAME: ${DOMAIN_BASENAME}
+  #        APP_HOME: ${APP_HOME}
+  #        DOMAIN_NAME: ${DOMAIN_NAME}
+  #        TZ: ${TZ}
+  #        LISTEN_PORT: ${FRONTEND_PORT}
+  #        HOSTNAME: ${HOSTNAME}
+  #    container_name: resume-frontend
+  #    user: ${NODE_USER}
+  #    hostname: frontend.${HOSTNAME}
+  #    working_dir: ${APP_HOME}
+  #    env_file:
+  #      - .devcontainer/backend.env
+  #    expose:
+  #      - ${FRONTEND_PORT}
+  #    ports:
+  #      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+  #    volumes:
+  #      - ./:${APP_HOME}
+  #    restart: on-failure
+  ##    command:
+  ##      - /bin/sh
+  ##      - -c
+  ##      - |
+  ##        sh -c "npm install" &&
+  ##        sh -c "npm run dev"
+  ##        sh -c 'echo Environment: "${NODE_ENV}"'
+  #    depends_on:
+  #      - backend
+  #    links:
+  #      - backend
+  #    networks:
+  #      frontend:
   # Backend API service
   backend:
-#    image: node:18
+    #    image: node:18
     build:  # project contents imported into Dockerfile at build time
       context: .
       dockerfile: ${BACKEND_DOCKERFILE}
@@ -67,7 +67,7 @@ services:
         HOSTNAME: ${HOSTNAME}
         USERNAME: ${USERNAME}
         UUID: ${UUID}
-#    container_name: backend
+    #    container_name: backend
     hostname: ${HOSTNAME} backend.${HOSTNAME}
     working_dir: ${WORKDIR}
     deploy:
@@ -82,12 +82,13 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ${BACKEND_VOL}
-#    restart: on-failure
-#    entrypoint: /entrypoint/entrypoint.sh
-#    depends_on:
-#      - mongodb
-#    links:
-#      - mongodb
+      - .devcontainer/certs/.certs:/usr/local/app/.certs
+    #    restart: on-failure
+    #    entrypoint: /entrypoint/entrypoint.sh
+    #    depends_on:
+    #      - mongodb
+    #    links:
+    #      - mongodb
     networks:
       backend:
 #    entrypoint: /entrypoint/entrypoint.sh
