@@ -133,7 +133,7 @@ function gen_rsa(execShellCmd){
                 }
 
                 for (let file of files) {
-                    for (const key in certs) {
+                    for (let key in certs) {
                         switch(`${file}`) {
                             case `${certs[key]}`:
                                 console.log(`SSL dependency found: ${file}`);

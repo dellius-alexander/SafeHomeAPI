@@ -85,10 +85,10 @@ services:
       - .devcontainer/certs/.certs:/usr/local/app/.certs
     #    restart: on-failure
     #    entrypoint: /entrypoint/entrypoint.sh
-    #    depends_on:
-    #      - mongodb
-    #    links:
-    #      - mongodb
+    depends_on:
+      - vault
+    links:
+      - vault
     networks:
       backend:
 #    entrypoint: /entrypoint/entrypoint.sh
@@ -98,7 +98,7 @@ services:
 #      - |
 #        sh -c "npm install" &&
 #        sh -c "npm run dev"
-
+#
 #  # mongo-express service
 #  mongo-express:
 #    image: mongo-express:latest
@@ -141,6 +141,7 @@ services:
 #    networks:
 #      backend:
 #    command: mongod --serviceExecutor adaptive
+#
 #  # Email Engine
 #  email_engine:
 #    restart: always
@@ -156,8 +157,7 @@ services:
 #      - redis
 #    environment:
 #      # Configuration to EmailEngine can be passed via environment variables
-#      # For full list see https://github.com/postalsys/emailengine#config-mapping
-#
+#      # For full list see https://github.com/postalsys/emailengine#config-mapping]
 #      # Settings to write to v1/settings on startup (https://api.emailengine.app/#operation/postV1Settings)
 #      # The following value is a YAML block scalar string, so make it sure it is properly indented
 #      # This configuration enables SMTP server for local submission
@@ -183,6 +183,27 @@ services:
 #    volumes:
 #      - redis-volume:/data
 #
+
+  vault:
+    image: vault:latest
+    container_name: vault
+    restart: on-failure
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_TOKEN: root
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    volumes:
+      - vault-volume:/vault
+    networks:
+      backend:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        sh -c "vault server -dev -dev-root-token-id=root"
+
 # Define application network
 networks:
   backend:
@@ -197,6 +218,7 @@ networks:
 # Define mongodb volume
 volumes:
   mongodb-volume: null
+  vault-volume: null
 #  redis-volume: null
 #
 # Email service

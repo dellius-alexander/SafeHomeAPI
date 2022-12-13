@@ -9,6 +9,7 @@ const CryptoJS = require("crypto-js")
 
 
 
+
 /**
  * Registers a new user
  * @param req the request object

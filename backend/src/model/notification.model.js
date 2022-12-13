@@ -1,7 +1,8 @@
 const { Schema, model } = require('mongoose')
 
 /**
- * Defines the notification model for a given security system
+ * Defines the notification model for a given security system settings. Setting are stored in the database and
+ * updated per user activation/deactivation remotely.
  * @param {model<{Schema}>} model The model to create
  */
 class Notification extends model("notifications",
@@ -51,7 +52,7 @@ class Notification extends model("notifications",
         validateBeforeSave: true,
     })){
     /**
-     * Creates a message model or provides access to message collection.
+     * Creates a notification object or provides access to notification collection.
      * @param doc the document
      */
     constructor(doc = {}) {

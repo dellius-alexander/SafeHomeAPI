@@ -1,55 +1,28 @@
 const { Schema, model } = require('mongoose')
-const { UserRoleEnum }  = require('./userRole.enum')
-
 
 /**
- * Defines the system user and his/her roles assigned.
- * Note: all passwords should be encrypted, no clear text is allowed in database.
+ * Creates an object for the X509 certificate key pair.
  * @param {model<{Schema}>} model The model to create
  */
-class User extends model("users",
+class X509Keys extends model("keys",
     /**
-     * Message Schema for Sending and Receiving Message.
-     * @type {Schema<any, Model<any>> }
+     * X509 certificate schema keys
+     * @type {Schema<any, Model<any>>}
      */
     new Schema({
-        name: {
+        private: {
             type: String,
-            required: true,
-            trim: true,
-            description: "User full name"
-        },
-        email: {
-            type: String,
-            index: true,
             required: true,
             trim: true,
             unique: true,
-            match: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.]+\.[a-zA-Z]+$/,
-            description: "User email address",
+            index: true,
         },
-        dob: {
-            type: Date,
-            format: 'yyyy-MM-dd',
-            required: true,
-            description: "user date of birth",
-        },
-        password: {
+        public: {
             type: String,
             required: true,
             trim: true,
-            description: "User password",
-        },
-        roles: [{
-            type: String,
-            ref: 'userRoles',
-            value: UserRoleEnum.role
-        }],
-        token: {
-            type: String,
-            required: true,
-            trim: true,
-            description: "user access token",
+            unique: true,
+            index: true,
         },
         timestamp: {
             createdAt: {
@@ -77,20 +50,15 @@ class User extends model("users",
         versionKey: '__revision_history',
         validateBeforeSave: true,
     })){
-
     /**
-     * Creates a user object representing the system user.
+     * Create X509 certificate key pairs.
      * @param doc the document
      */
     constructor(doc = {}) {
         super(doc)
     }
-
 }
-
 
 module.exports = {
-    User
+    Keys: X509Keys
 }
-
-

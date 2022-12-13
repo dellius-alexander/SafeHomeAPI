@@ -1,7 +1,7 @@
 const { Schema, model } = require('mongoose')
 
 /**
- * Creates a new EventTypeEnum object
+ * Creates a new EventTypeEnum object of statically defined event types
  * @param {model<{Schema}>} model The model to create
  */
 class EventTypeEnum extends model("eventType",

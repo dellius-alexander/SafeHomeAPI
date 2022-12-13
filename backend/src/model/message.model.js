@@ -8,7 +8,7 @@ class Message extends model("messages",
 /**
  * Message Schema for Sending and Receiving Message.
  * subject, message, timestamp, sensor, system, eventType
- * @type {Schema<any, Model<any>> }
+ * @type {Schema<any, Model<any>>}
  */
 new Schema({
     user: {
@@ -61,25 +61,6 @@ new Schema({
 
 }
 
-// let msg = new Messages({
-//     name: "John",
-//     email: "John@example.com",
-//     subject: "John Testing Message",
-//     message: "John Testing Message for Message testing..."
-// })
-//
-// console.log(msg)
-// console.log(msg.toString())
-
-// msg = new Messages({
-//     name: "Bob",
-//     email: "Bob@example.com",
-//     subject: "Bob Testing Message",
-//     message: "bob Testing Message for Message testing..."
-// })
-//
-// console.log(msg.__revision_history)
-// console.log(msg.toString())
 
 module.exports = {
     Message

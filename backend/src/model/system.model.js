@@ -1,7 +1,8 @@
 const { Schema, model } = require('mongoose')
 
 /**
- * Creates a new securitySystem record.
+ * Creates a new securitySystem record object representing the in home control panel. Maps the system properties and
+ * persists the system configuration.
  * @param {model<{Schema}>} model The model to create
  */
 class SecuritySystem extends model("securitySystem",
@@ -58,7 +59,7 @@ class SecuritySystem extends model("securitySystem",
         validateBeforeSave: true,
     })){
     /**
-     * Creates a message model or provides access to message collection.
+     * Creates a System object that represents the security  system.
      * @param doc the document
      */
     constructor(doc = {}) {

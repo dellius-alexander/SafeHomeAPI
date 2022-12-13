@@ -22,7 +22,7 @@
 #  exit 1
 #fi
 #
-cd /home/dalexander/app/node_modules/mongodb &&
+#cd /home/dalexander/app/node_modules/mongodb &&
 npm install &&
 cd /home/dalexander/app/ &&
 npm audit fix --force &&
