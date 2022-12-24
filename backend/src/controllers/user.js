@@ -1,15 +1,28 @@
-const {
-    encrypt,
-    decrypt,
-    getEncryptedData
-} = require('../utils/helpers')
+/**
+ *    Copyright 2022 Dellius Alexander
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 const { User } = require('../model/user.model')
 const { UserRoleEnum } = require('../model/userRole.enum')
-const CryptoJS = require("crypto-js")
-
-
-
-
+const {
+    rsaDecrypt,
+    encrypt,
+    decrypt
+} = require("../utils/rsa_crypto");
+const publicKey = require('fs').readFileSync(process.env.PUBLIC_KEY_FILE, 'utf8');
+const privateKey = require('fs').readFileSync(process.env.PRIVATE_KEY_FILE, 'utf8');
+/************************************************************************/
 /**
  * Registers a new user
  * @param req the request object
@@ -26,7 +39,7 @@ const register = async function (req, res) {
                             undefined;
 
 
-        params = getEncryptedData(params.secureMessage)
+        params = JSON.parse((await rsaDecrypt(privateKey, params.secureMessage)).toString())
 
 
         // The decrypted data is of the Buffer type, which we can convert to a
@@ -47,13 +60,13 @@ const register = async function (req, res) {
                 error: 'Missing required fields',
             });
         }
-        const encryptedPasswd = encrypt(password, CryptoJS.AES)
+        const encryptedPasswd = encrypt(publicKey, password)
         const timestamp = new Date().toISOString()
-        let apiToken = encrypt(JSON.stringify({
+        let apiToken = encrypt(publicKey, JSON.stringify({
             username: email,
             createdAt: timestamp,
             expireAt: 21600000 // 6|12|24 hours
-        }), CryptoJS.AES).toString()
+        })).toString()
         let role = await UserRoleEnum.findOne({role: 'USER'})
         if (!role){
             role = await UserRoleEnum.create({role: 'USER'})
@@ -104,6 +117,7 @@ const register = async function (req, res) {
         }
     } catch (e) {
         console.dir(e)
+        e.stackTrace
     }
 }
 
@@ -123,8 +137,10 @@ const login = async function(req, res) {
                     Object.keys(req.params).length !== 0 ? req.params :
                         undefined);
 
-        params = getEncryptedData(params.secureMessage)
-        console.log("Decrypted Credentials: ", params);
+        params = JSON.parse((await rsaDecrypt(privateKey, params.secureMessage)).toString('utf-8'))
+        console.log('Decrypted message: ', params)
+        const email = params.email
+        const password = params.password
 
         // check if the request is empty
         if (params === undefined || Object.keys(params).length  < 2) {
@@ -133,11 +149,9 @@ const login = async function(req, res) {
                 success: false
             })
         }
-        // get user information from params
-        const email = params.email
-        const password = params.password
 
-        console.log(`Email: ${email} | Password: ${await encrypt(password, CryptoJS.AES)}`)
+        // get user information from params
+        console.log(`Email: ${email} | Password: ${(await encrypt(publicKey, password)).toString()}`)
 
         if (email) { // if object exists
             // check if user already exists
@@ -146,16 +160,17 @@ const login = async function(req, res) {
             if (user) {
                 console.log("User information: ")
                 console.log(user)
-                let passwd = decrypt(user.password, CryptoJS.AES)
+                let passwd = (await decrypt(publicKey, user.password)).toString()
                 const timestamp = new Date()
+                console.log('Decrypted passwd: ' + passwd)
 
                 /*
                  * Check password for match
                  * if password matches send api token to client via response
                  */
                 if (passwd === password){
-                    //
-                    let oldToken = JSON.parse(decrypt(user.token, CryptoJS.AES))
+                    // decrypt user api token
+                    let oldToken = JSON.parse((await decrypt(publicKey, user.token)).toString())
                     console.log("Old token: ")
                     console.log(oldToken)
                     const oldTimestamp = new Date(oldToken.createdAt)
@@ -168,11 +183,13 @@ const login = async function(req, res) {
                      */
                     if (elapsed > 21600000) {
                         // new api token
-                        apiToken = encrypt(JSON.stringify({
+                        apiToken = (await encrypt(publicKey, JSON.stringify({
                             username: email,
                             createdAt: timestamp.toISOString(),
                             expireAt: 21600000 // 6|12|24 hours
-                        }), CryptoJS.AES).toString()
+                        }))).toString()
+                        console.log("New api token: ")
+                        console.log(apiToken)
 
                         // update user token and __revision_history
                         await User.findOneAndUpdate(
@@ -218,8 +235,11 @@ const login = async function(req, res) {
         }
     } catch(e) {
         console.dir(e)
+        e.stackTrace
     }
 }
+
+
 
 module.exports = {
     register,

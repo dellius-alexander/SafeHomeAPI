@@ -1,19 +1,32 @@
+/**
+ *    Copyright 2022 Dellius Alexander
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+/**
+ * Initialize configuration of our api service
+ */
+require('./config').config().catch(err => console.dir(err));
 const app = require('../server')
-// const greenlock = require('./greenlock.config')
 const mongoose = require('mongoose')
-const {
-    normalizePort
-} = require('./config')
+const { normalizePort } = require('../src/utils/helpers')
+
 /**
  * Error Handler must be last in the chain of custody handlers.
  * @type {function(err, req, res, next): Promise<void>}
  */
-const {
-    errorHandler
-} = require("../src/middleware/errorHandler");
-const {
-    readFileSync
-} = require("fs");
+const { errorHandler } = require("../src/middleware/errorHandler");
+const { readFileSync } = require("fs");
 
 /**
  * Http Server object.
@@ -23,6 +36,7 @@ const {
  * Https Server object.
  */
 const httpsServer = require('https')
+
 
 /**
  * Initialize application server
@@ -97,7 +111,7 @@ async function main() {
          * @type {{cert: Buffer, key: Buffer}}
          */
         const sslOptions = {
-            key: readFileSync(process.env.SSL_KEY_FILE, 'utf-8'),
+            key: readFileSync(process.env.PRIVATE_KEY_FILE, 'utf-8'),
             cert: readFileSync(process.env.SSL_CERT_FILE, 'utf-8'),
             ca: readFileSync(process.env.SSL_CA_FILE, 'utf-8')
         }
@@ -145,9 +159,11 @@ async function main() {
                 console.error(req, res)
             })
 
+
+
     } catch (e) {
         console.error(`server.Error: `)
-        console.error(e)
+        console.dir(e)
         process.exit(1)
     }
 }

@@ -15,10 +15,10 @@ ARG UUID=1001
 ENV APP_HOME="/home/${USERNAME}/app"
 ENV NODE_ENV=${NODE_ENV}
 WORKDIR "${APP_HOME}"
+
 RUN echo "Domain name: ${DOMAIN_NAME} | DOMAIN: ${DOMAIN_BASENAME}"
 
-RUN apt-get update -y && \
-    apt-get install -y curl
+RUN apt-get update -y
 
 RUN mkdir -p \
     /tmp/app \

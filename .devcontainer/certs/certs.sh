@@ -23,7 +23,7 @@
 #       example.pem   // fullchain
 #       example.pub   // public key file
 ########################################################################
-
+set -e
 HOSTNAME="";
 EXAMPLE_REQ="";
 DOMAIN_NAME="";

@@ -1,56 +1,16 @@
 
 #############################################################################################################
 # Start your application services by typing at the Docker CLI:
-#     ~$> docker-compose -f <"a unique name">.docker-compose.yml up -d
+# ~$> docker-compose -f <"a unique name">.docker-compose.yml up -d
 # Shutdown services with the Docker CLI command:
-#     ~$> docker-compose -f  <"a unique name">.docker-compose.yml down --remove-orphans
-#     The "--remove-orphans" flag is used to remove any child container instances that may have been created
+# ~$> docker-compose -f  <"a unique name">.docker-compose.yml down --remove-orphans
+# The "--remove-orphans" flag is used to remove any child container instances that may have been created
 # Build, remove orphaned containers and refresh services:
-#     ~$> docker-compose -f docker-compose.yml up --always-recreate-deps --renew-anon-volumes --remove-orphans --force-recreate -d --build
+# ~$> docker-compose -f docker-compose.yml up --always-recreate-deps --renew-anon-volumes --remove-orphans --force-recreate -d --build
 #############################################################################################################
 version: '3.8'
 services:
-  #  # node backend service
-  #  frontend:
-  ##    image: node:18
-  #    build:  # project contents imported into Dockerfile at build time
-  #      context: .
-  #      dockerfile: .devcontainer/backend.Dockerfile
-  #      args:
-  #        NODE_VERSION: ${NODE_VERSION}
-  #        NODE_ENV: ${NODE_ENV}
-  #        DOMAIN_BASENAME: ${DOMAIN_BASENAME}
-  #        APP_HOME: ${APP_HOME}
-  #        DOMAIN_NAME: ${DOMAIN_NAME}
-  #        TZ: ${TZ}
-  #        LISTEN_PORT: ${FRONTEND_PORT}
-  #        HOSTNAME: ${HOSTNAME}
-  #    container_name: resume-frontend
-  #    user: ${NODE_USER}
-  #    hostname: frontend.${HOSTNAME}
-  #    working_dir: ${APP_HOME}
-  #    env_file:
-  #      - .devcontainer/backend.env
-  #    expose:
-  #      - ${FRONTEND_PORT}
-  #    ports:
-  #      - ${FRONTEND_PORT}:${FRONTEND_PORT}
-  #    volumes:
-  #      - ./:${APP_HOME}
-  #    restart: on-failure
-  ##    command:
-  ##      - /bin/sh
-  ##      - -c
-  ##      - |
-  ##        sh -c "npm install" &&
-  ##        sh -c "npm run dev"
-  ##        sh -c 'echo Environment: "${NODE_ENV}"'
-  #    depends_on:
-  #      - backend
-  #    links:
-  #      - backend
-  #    networks:
-  #      frontend:
+  #############################################################################
   # Backend API service
   backend:
     #    image: node:18
@@ -67,13 +27,9 @@ services:
         HOSTNAME: ${HOSTNAME}
         USERNAME: ${USERNAME}
         UUID: ${UUID}
-    #    container_name: backend
+    container_name: backend-api
     hostname: ${HOSTNAME} backend.${HOSTNAME}
     working_dir: ${WORKDIR}
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
     env_file:
       - ${BACKEND_ENV}
     expose:
@@ -83,127 +39,144 @@ services:
     volumes:
       - ${BACKEND_VOL}
       - .devcontainer/certs/.certs:/usr/local/app/.certs
-    #    restart: on-failure
-    #    entrypoint: /entrypoint/entrypoint.sh
     depends_on:
       - vault
     links:
       - vault
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     networks:
       backend:
-#    entrypoint: /entrypoint/entrypoint.sh
-#    command:
-#      - /bin/sh
-#      - -c
-#      - |
-#        sh -c "npm install" &&
-#        sh -c "npm run dev"
-#
-#  # mongo-express service
-#  mongo-express:
-#    image: mongo-express:latest
-#    container_name: mongo-express
-#    restart: on-failure
-#    environment:
-#      ME_CONFIG_MONGODB_AUTH_DATABASE: 'db'  # Database name
-##      ME_CONFIG_BASICAUTH_USERNAME:  ${MONGODB_USER}
-##      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGODB_PASSWD}
-#      ME_CONFIG_MONGODB_AUTH_USERNAME: ${MONGODB_USER} # Database username
-#      ME_CONFIG_MONGODB_AUTH_PASSWORD: ${MONGODB_PASSWD} # Database password
-#      ME_CONFIG_MONGODB_URL: "mongodb://${MONGODB_USER}:${MONGODB_PASSWD}@mongodb:27017/"
-#      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true' # Enable admin access to all databases.
-#    ports:
-#      - "8081:8081"
-#    depends_on:
-#      - mongodb
-#    links:
-#      - mongodb
-#    networks:
-#      backend:
-#
-#  # mongodb service
-#  mongodb:
-#    #image: mongo:6.0.2
-#    build: # project contents imported into Dockerfile at build time
-#      context: .
-#      dockerfile: ${MONGODB_DOCKERFILE}
-#    container_name: mongodb
-#    restart: on-failure
-#    env_file:
-#      - ${MONGODB_ENV}
-#    volumes:
-#      - ${MONGODB_VOL}
-#      - .devcontainer/scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
-#    expose:
-#      - ${MONGO_PORT}
-#    ports:
-#      - ${MONGO_PORT}:${MONGO_PORT}
-#    networks:
-#      backend:
-#    command: mongod --serviceExecutor adaptive
-#
-#  # Email Engine
-#  email_engine:
-#    restart: always
-#    image: andris9/emailengine:latest
-#    ports:
-#      # API and web interface
-#      - '3000:3000'
-#      # SMTP for message submission
-#      - '2525:2525'
-#    depends_on:
-#      - redis
-#    links:
-#      - redis
-#    environment:
-#      # Configuration to EmailEngine can be passed via environment variables
-#      # For full list see https://github.com/postalsys/emailengine#config-mapping]
-#      # Settings to write to v1/settings on startup (https://api.emailengine.app/#operation/postV1Settings)
-#      # The following value is a YAML block scalar string, so make it sure it is properly indented
-#      # This configuration enables SMTP server for local submission
-#      EENGINE_SETTINGS: >
-#        {
-#            "smtpServerEnabled": true,
-#            "smtpServerPort": 2525,
-#            "smtpServerHost": "0.0.0.0",
-#            "smtpServerAuthEnabled": true,
-#            "smtpServerPassword": "${EENGINE_SECRET}"
-#       }
-#
-#      # Encryption secret
-#      EENGINE_SECRET: /run/secrets/eengine_secret
-#      # Database connection URL
-#      EENGINE_REDIS: 'redis://redis:6379/2'
-#    secrets:
-#      - eengine_secret
-#
-#  redis:
-#    image: redis:alpine
-#    restart: always
-#    volumes:
-#      - redis-volume:/data
-#
-
+  #############################################################################
+  # Vault is a tool for securely accessing secrets. A secret is anything that
+  # you want to tightly control access to, such as API keys, passwords, certificates,
+  # and more. Vault provides a unified interface to any secret, while providing tight
+  # access control and recording a detailed audit log.
   vault:
-    image: vault:latest
+#    image: vault:1.12.2
+    build:
+      context: .
+      dockerfile: ${VAULT_DOCKERFILE}
+      args:
+        VERSION: 1.12.2
     container_name: vault
-    restart: on-failure
-    environment:
-      VAULT_ADDR: http://127.0.0.1:8200
-      VAULT_TOKEN: root
+    env_file:
+      - ${VAULT_ENV}
+    cap_add:
+      - IPC_LOCK
     ports:
-      - "8200:8200"
-      - "8201:8201"
-    volumes:
-      - vault-volume:/vault
+      - ${VAULT_API_PORT}
+    depends_on:
+      - mysql-server
+    links:
+      - mysql-server
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     networks:
       backend:
-    command:
-      - /bin/sh
-      - -c
-      - |
-        sh -c "vault server -dev -dev-root-token-id=root"
-
+  #############################################################################
+#  vault-client:
+##    image: vault:1.12.2
+#    build:
+#      context: .
+#      dockerfile: ${VAULT_CLIENT_DOCKERFILE}
+#      args:
+#        VERSION: 1.12.2
+#    container_name: vault-client
+#    env_file:
+#      - ${VAULT_CLIENT_ENV}
+#    volumes:
+#      - .devcontainer/vault/policies/:/policies/
+#    depends_on:
+#      - mysql-server
+#    links:
+#      - mysql-server
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: on-failure
+#    networks:
+#      backend:
+  ###############################################################################
+  mysql-server:
+    image: mysql/mysql-server:8.0
+    container_name: mysql-server
+    volumes:
+      - .devcontainer/mysql/config/:/etc/mysql/conf.d/
+#      - mysql-volume:/var/lib/mysql
+      - .devcontainer/mysql/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+    ports:
+      - "3306:3306"
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      backend:
+  #############################################################################
+  #  # mongodb service
+  #  mongodb:
+  #    #image: mongo:6.0.2
+  #    build: # project contents imported into Dockerfile at build time
+  #      context: .
+  #      dockerfile: ${MONGODB_DOCKERFILE}
+  #    container_name: mongodb
+  #    restart: on-failure
+  #    env_file:
+  #      - ${MONGODB_ENV}
+  #    volumes:
+  #      - ${MONGODB_VOL}
+  #      - .devcontainer/scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+  #    expose:
+  #      - ${MONGO_PORT}
+  #    ports:
+  #      - ${MONGO_PORT}:${MONGO_PORT}
+  #    networks:
+  #      backend:
+  #    command: mongod --serviceExecutor adaptive
+  #############################################################################
+  #  # Email Engine
+  #  email_engine:
+  #    restart: always
+  #    image: andris9/emailengine:latest
+  #    ports:
+  #      # API and web interface
+  #      - '3000:3000'
+  #      # SMTP for message submission
+  #      - '2525:2525'
+  #    depends_on:
+  #      - redis
+  #    links:
+  #      - redis
+  #    environment:
+  #      # Configuration to EmailEngine can be passed via environment variables
+  #      # For full list see https://github.com/postalsys/emailengine#config-mapping]
+  #      # Settings to write to v1/settings on startup (https://api.emailengine.app/#operation/postV1Settings)
+  #      # The following value is a YAML block scalar string, so make it sure it is properly indented
+  #      # This configuration enables SMTP server for local submission
+  #      EENGINE_SETTINGS: >
+  #        {
+  #            "smtpServerEnabled": true,
+  #            "smtpServerPort": 2525,
+  #            "smtpServerHost": "0.0.0.0",
+  #            "smtpServerAuthEnabled": true,
+  #            "smtpServerPassword": "${EENGINE_SECRET}"
+  #       }
+  #
+  #      # Encryption secret
+  #      EENGINE_SECRET: /run/secrets/eengine_secret
+  #      # Database connection URL
+  #      EENGINE_REDIS: 'redis://redis:6379/2'
+  #    secrets:
+  #      - eengine_secret
+###############################################################################
 # Define application network
 networks:
   backend:
@@ -214,18 +187,11 @@ networks:
 #    driver: bridge
 #    ipam:
 #      driver: default
-#
+###############################################################################
 # Define mongodb volume
 volumes:
-  mongodb-volume: null
   vault-volume: null
+#  mysql-volume: null
+#  mongodb-volume: null
 #  redis-volume: null
-#
-# Email service
-#secrets:
-#  email_username:
-#    file: ./.devcontainer/email_username.txt
-#  email_password:
-#    file: ./.devcontainer/email_password.txt
-#  eengine_secret:
-#    file: ./.devcontainer/eengine_secret.txt
+###############################################################################

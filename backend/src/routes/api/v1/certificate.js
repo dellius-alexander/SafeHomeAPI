@@ -18,15 +18,18 @@ const {readFileSync} = require("fs");
 const router = express.Router();
 const PUBLIC_KEY = readFileSync(process.env.PUBLIC_KEY_FILE, 'utf-8')
 
-/* GET home page. */
+/**
+ * Get the public key. In symmetric-key cryptography,
+ * the same key is used for both encryption and decryption. In
+ * public-key cryptography, there exists a pair of related keys
+ * known as the public key and private key. The public key is
+ * freely available, whereas the private key is kept secret.
+ * The public key is able to encrypt messages that only the
+ * corresponding private key is able to decrypt, and vice versa.
+ * @param {request} request the request object
+ * @param {response} response the response object
+ */
 router.get('/certificate', (req,res) => {
-    const publicKey = req.headers.authorization = PUBLIC_KEY
-    console.log(publicKey)
-    // res.headers.authorization = PUBLIC_KEY
-    return res.status(200).json({publicKey : publicKey})
-
-});
-router.post('/certificate', (req,res) => {
     const publicKey = req.headers.authorization = PUBLIC_KEY
     console.log(publicKey)
     return res.status(200).json({publicKey : publicKey})

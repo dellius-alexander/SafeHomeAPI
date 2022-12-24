@@ -53,14 +53,20 @@ const logger = require('morgan');
 // cryptographic signatures
 // const crypto = require('crypto');
 
+// start the vault server
+require("./src/services/vault/vault");
+
+
 // express router
 // const expressApp = require(`express/lib/router`);
 // instantiate express middleware
 const server = express();
 
+
 //By default, Express.js sends the X-Powered-By response header banner.
 // This can be disabled using the app.disable() method
 server.disable('x-powered-by')
+
 // add middleware security for api
 /**
  * Add security for application.

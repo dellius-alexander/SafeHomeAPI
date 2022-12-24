@@ -1,91 +1,18 @@
-
-const { readFileSync } = require('fs')
-const CryptoJS = require("crypto-js");
-const crypto = require("crypto");
-// get the public key
-const PUBLIC_KEY = readFileSync(process.env.PUBLIC_KEY_FILE, 'utf-8')
-const PRIVATE_KEY = readFileSync(process.env.SSL_KEY_FILE, 'utf-8')
-
-const getEncryptedData = function (data) {
-    let params;
-    try {
-        console.log('Authorization: ')
-        console.log(data)
-        // const cypherText = CryptoJS.dec.Base64.parse(params.secureMessage)
-        console.log(data.length)
-
-        // const decryptedMessage = CryptoJS.RSA(params.secureMessage, PRIVATE_KEY)
-        let decryptedData = crypto.privateDecrypt({
-                key: PRIVATE_KEY,
-                // In order to decrypt the data, we need to specify the
-                // same hashing function and padding scheme that we used to
-                // encrypt the data in the previous step
-                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: "sha256",
-            },
-            Buffer.from(data.toString(), "base64")
-        );
-        params = JSON.parse(decryptedData.toString("utf-8"))
-
-        // The decrypted data is of the Buffer type, which we can convert to a
-        // string to reveal the original data
-        console.log("Decrypted data: ", params.email);
-        console.log("Params Count: ", Object.keys(params).length)
-    } catch (e) {
-        console.dir(e)
-        e.stackTrace
-    }
-    return params;
-}
-
 /**
- * Encrypt the given message using the PUBLIC_KEY
- * @param {String} message the message to encrypt
- * @param {CryptoJS.AES} algorithm encoding algorithm to use
- * @returns {Promise<*>} a promise that will be fulfilled
+ *    Copyright 2022 Dellius Alexander
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
-const encrypt = function(message, algorithm){
-    try {
-        // Encrypt
-        let cypherText = algorithm.encrypt(message,PRIVATE_KEY);
-        console.log("CypherText: ",cypherText.toString());
-        return cypherText.toString();
-    } catch (e) {
-        console.dir(e)
-    }
-}
-
-/**
- * Decrypt the given message using the PUBLIC_KEY
- * @param {String} message the message to decrypt
- * @param {CryptoJS.AES} algorithm encoding algorithm to use
- * @returns {Promise<*>} a promise that will be fulfilled
- */
-const decrypt = function(message, algorithm) {
-    try {
-        // Decrypt
-        const bytes = algorithm.decrypt(message, PRIVATE_KEY);
-        const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-        console.log("Decrypted Text: ",decryptedString);
-        return decryptedString;
-    } catch (e) {
-        console.dir(e)
-    }
-}
-
-/**
- * Decrypt encrypted data using the provided algorithm, iv and key.
- * @param { AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams} encrypted the encrypted message
- * @param { BufferSource} iv the initialization vector
- * @param {CryptoKey} key the encryption key
- * @returns {string} decrypted message
- */
-function decryptData(encrypted,iv,key){
-    const decrypted = CryptoJS.AES.decrypt(encrypted.toString(), key);
-    console.log(decrypted);
-    return decrypted.toString(CryptoJS.enc.Utf8)
-}
-
 /**
  * Checks if the object is empty.
  * @param obj the object to check
@@ -102,6 +29,7 @@ const isEmpty = function(obj) {
     }
     return true;
 }
+
 /**
  * Check request body, params, query and returns search filter
  * @param obj the request object
@@ -172,31 +100,34 @@ const queryMessageFilter = function(filters =  {}){
         query.message = {$regex: filters.message}
         delete filters.message;
     }
-    // if (filters.hasOwnProperty('timestamp')) {
-    //     console.log("Property Found: 'timestamp'")
-    //     query.timestamp = {$eq: new Date(filters.timestamp).toISOString()}
-    //     delete filters.message;
-    // }
+
     return query;
 }
 
+/**
+ * Normalize a port into a number, string, or false.
+ * @param val the port to be normalized
+ * @returns {boolean|number|*} the normalized port value
+ */
+function normalizePort(val) {
+    const port = parseInt(val, 10);
 
-// let filter = {
-//     name: undefined,
-//     email: "jane@gmail.com",
-//     subject: "Its jane",
-//     message: "jane"
-// }
-// let query = isEmpty(filter)
-// console.log(query)
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
 
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
 module.exports = {
-    encrypt,
-    decrypt,
     isEmpty,
     checkForSearchFilters,
     queryMessageFilter,
-    decryptData,
-    getEncryptedData
+    normalizePort
 }
 

@@ -1,67 +1,14 @@
+ARG VERSION=1.12.2
+FROM vault:${VERSION}
+RUN mkdir -p \
+    /entrypoint \
+    /etc/vault
 
-FROM hashicorp/vault:latest
+COPY .devcontainer/vault/config/main.hcl*  /etc/vault/
+COPY .devcontainer/vault/config/storage.hcl* /etc/vault/
+COPY .devcontainer/vault/config/tcp-listener.hcl* /etc/vault/
 
-ENV VAULT_ADDR: http://127.0.0.1:8200
-ENV VAULT_TOKEN: root
+COPY .devcontainer/vault/entrypoint/vault-entrypoint.sh /entrypoint/
 
-RUN cat <<EOF | tee admin-policy.hcl \
-    # Read system health check
-    path "sys/health" \
-    { \
-      capabilities = ["read", "sudo"] \
-    } \
-    # Create and manage ACL policies broadly across Vault
-    \
-    # List existing policies
-    path "sys/policies/acl" \
-    { \
-      capabilities = ["list"] \
-    } \
-    \
-    # Create and manage ACL policies
-    path "sys/policies/acl/*" \
-    { \
-      capabilities = ["create", "read", "update", "delete", "list", "sudo"] \
-    } \
-    \
-    # Enable and manage authentication methods broadly across Vault
-    \
-    # Manage auth methods broadly across Vault
-    path "auth/*" \
-    { \
-      capabilities = ["create", "read", "update", "delete", "list", "sudo"] \
-    } \
-    \
-    # Create, update, and delete auth methods
-    path "sys/auth/*" \
-    { \
-      capabilities = ["create", "update", "delete", "sudo"] \
-    } \
-    \
-    # List auth methods
-    path "sys/auth" \
-    { \
-      capabilities = ["read"] \
-    } \
-    \
-    # Enable and manage the key/value secrets engine at `secret/` path
-    \
-    # List, create, update, and delete key/value secrets
-    path "secret/*" \
-    { \
-      capabilities = ["create", "read", "update", "delete", "list", "sudo"] \
-    } \
-    \
-    # Manage secrets engines
-    path "sys/mounts/*" \
-    { \
-      capabilities = ["create", "read", "update", "delete", "list", "sudo"] \
-    } \
-    \
-    # List existing secrets engines.
-    path "sys/mounts" \
-    { \
-      capabilities = ["read"] \
-    } \
-EOF
-
+ENTRYPOINT ["/bin/sh", "/entrypoint/vault-entrypoint.sh"]
+CMD ["/bin/sh", "-c", "vault operator init"]
