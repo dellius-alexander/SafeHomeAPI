@@ -57,12 +57,12 @@ secret_id_ttl=120m
 # generate credentials. For example, if an organization has separate
 # database instances for production, integration, and development,
 # each database requires a separate configuration.
-#vault write database/config/dev-data \
-#    plugin_name=mysql-database-plugin \
-#    connection_url="{{username}}:{{password}}@tcp(mysql-server:3306)/" \
-#    allowed_roles="vault-mysql-role" \
-#    username="${DBUSER}" \
-#    password="${DBPASS}"
+#vault write database/config/mysqlsrv01 \
+#plugin_name=mysql-database-plugin \
+#connection_url="{{username}}:{{password}}@tcp(<yourMacIp>:3306)/" \
+#allowed_roles="mysqlsrv01-admin-role,mysqlsrv01-readonly-role" \
+#username="vaultsvc" \
+#password="password1"
 
 ###############################################################################
 # Create a Role:
@@ -73,11 +73,22 @@ secret_id_ttl=120m
 # and additional grants for the new user. For example, Vault may create a
 # new user and only permit the new user SELECT, EXECUTE, and INSERT on a
 # database named data.
-#vault write database/roles/vault-mysql-role \
-#    db_name=secrets \
-#    creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT, EXECUTE, INSERT ON secrets.* TO '{{name}}'@'%';" \
-#    default_ttl="1h" \
-#    max_ttl="24h"
+#vault write database/roles/mysqlsrv01-admin-role \
+#db_name=mysqlsrv01 \
+#creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT ALL PRIVILEGES ON *.* TO '{{name}}'@'%';" \
+#default_ttl="5m" \
+#max_ttl="10m"
+
+#vault write database/roles/mysqlsrv01-readonly-role \
+#db_name=mysqlsrv01 \
+#creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON *.* TO '{{name}}'@'%';" \
+#default_ttl="1m" \
+#max_ttl="5m"
+
+## Test dynamic DB creds
+#
+#vault read database/creds/mysqlsrv01-admin-role
+#vault read database/creds/mysqlsrv01-readonly-role
 
 ###############################################################################
 # Generate Credentials:

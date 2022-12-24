@@ -1,38 +1,32 @@
+'use strict';
 const { writeFileSync } = require('fs');
 const { Buffer } = require('buffer');
-
-const options = {
-    apiVersion: 'v1',
-    endpoint: 'http://vault:8200',
-    token: 'U2FsdGVkX19BTBBZ2sNRH9r3'
-};
+const vault = require('./vault');
 
 const key_shares_options = {
     secret_shares: 1,
     secret_threshold: 1
 };
 
-// get new instance of the client
-const vault = require("node-vault")(options);
+let vault_keys;
 
 /**
  * Check if the vault cluster is initialized
  * @returns {Promise<void>}
  */
 async function initialized(){
-    let isInitialized = false;
+
     try {
-        vault.initialized(key_shares_options)
+        await vault.initialized(key_shares_options)
             .then( (result) => {
-                isInitialized = result.initialized;
-                if ( ! initialized ) {
+                if ( initialized ) {
                     console.log(`Vault is initialized. Continuing without initialization.`)
                     console.dir(result)
-                    return isInitialized;
+                    return result.initialized;
                 } else {
                     console.log(`Vault is not initialized.`)
                     console.dir(result)
-                    return isInitialized;
+                    return result.initialized;
                 }
             })
     } catch (e) {
@@ -51,41 +45,41 @@ async function initialized(){
 async function writeTokenToFile(rawData){
     const jsonData = JSON.stringify(rawData, null, 2);
     const data = Buffer.alloc(jsonData.length, jsonData, 'utf-8')
-    writeFileSync('/usr/local/app/.certs/vault-cluster.json', data)
+    await writeFileSync('/usr/local/app/.certs/vault-cluster.json', data)
 }
 
 /**
  * Main entry point to the vault cluster
  * @returns {Promise<void>}
  */
-async function main() {
+async function init() {
     try {
-        if (! await initialized()){
+        if ( await initialized() === false){
 
             // initialize vault server
-            vault.init(key_shares_options)
-                .then( (result) => {
+            await vault.init(key_shares_options)
+                .then( async (result) => {
                     console.log('Init Response: ')
                     console.dir(result)
 
-                    const keys = result.keys;
-                    const keys_base64 = result.keys_base64
-                    const root_token = result.root_token
+                    vault_keys.keys = result.keys;
+                    vault_keys.keys_base64 = result.keys_base64
+                    vault_keys.root_token = result.root_token
 
                     console.log('Vault Keys: ')
-                    console.dir(keys)
+                    console.dir(vault_keys.keys)
 
                     console.log('Vault Base64 Keys: ')
-                    console.dir(keys_base64)
+                    console.dir(vault_keys.keys_base64)
 
                     console.log('Vault Root Token: ')
-                    console.dir(root_token)
+                    console.dir(vault_keys.root_token)
 
                     // write the key shares to file where the x509 certificates are located
-                    writeTokenToFile(result)
+                    await writeTokenToFile(result)
 
                     // unseal vault server
-                    return vault.unseal({ secret_shares: 1, key: keys[0]})
+                    return await vault.unseal({secret_shares: 1, key: vault_keys.keys[0]})
                 })
                 .then( (resp) => {
                     console.log('\nServer Unsealed Response: ')
@@ -98,21 +92,40 @@ async function main() {
         console.log('Error in main function.')
     }
 }
-
 let counter = 0;
-const delay = async( milliseconds = 1000 ) =>{
-    let response = null;
+/**
+ * Initializes vault server with an imposed delay in considerations of databases,
+ * vault and server startup time.
+ * @param milliseconds
+ * @returns {Promise<null>}
+ */
+async function init_delay ( milliseconds = 3000 ){
+    let timer = null;
+    let sealed = null;
     try{
 
-        while (! await initialized()) {
-            console.log('Attempting to initialize vault cluster. Attempt: ', counter)
-            response = setTimeout(main, milliseconds)
+        while ( await initialized() === false ) {
+
+
+            if (await initialized() === false) {
+                console.log('Attempting to initialize vault cluster. Attempt: ', counter)
+                timer = setTimeout(init, milliseconds)
+                console.dir(`Timer: ${timer}`)
+            }
+
+            else if (! vault_keys === undefined) {
+                console.log('Attempting to initialize vault cluster. Attempt: ', counter)
+                sealed = await vault.unseal({secret_shares: 1, key: vault_keys.keys[0]})
+                console.dir(`Sealed: ${sealed}`)
+            }
+
+            else if (counter > 10 || await initialized() === true && vault_keys !== undefined) {
+                clearTimeout(timer);
+                break;
+            }
+
             counter += 1
-            if (counter === 10 || await initialized()) break
         };
-        console.log('Vault cluster initialized')
-        console.dir(response)
-        return response;
     } catch (e) {
         console.dir(e);
         e.stackTrace
@@ -120,6 +133,6 @@ const delay = async( milliseconds = 1000 ) =>{
     }
 }
 
-const resp = delay(10000);
-console.log('Server Response: ')
-console.dir(resp)
+module.exports = {
+    init_delay
+}

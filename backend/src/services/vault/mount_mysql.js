@@ -1,31 +1,46 @@
-// file: example/mount_postgresql.js
+const vault = require('./vault');
 
-process.env.DEBUG = 'node-vault'; // switch on debug mode
+/**
+ * Initialize mysql database as the vault secret storage engine.
+ *
+ * @returns {Promise<void>}
+ */
+async function init_mysql() {
 
-const vault = require('./../src/index')();
+    const connection = '{{username}}:{{password}}@tcp(mysql-server:3306)/';
 
-const connection = '{{username}}:{{password}}@tcp(mysql-server:3306)/';
+    const adminQuery = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT ALL PRIVILEGES ON *.* TO '{{name}}'@'%';";
 
-const query = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT, EXECUTE, INSERT ON secrets.* TO '{{name}}'@'%';";
+    const query = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON secrets.* TO '{{name}}'@'%';";
 
-const configure = () => vault.write('postgresql/config/lease', { lease: '1h', lease_max: '24h' })
-    .then(() => vault.write('postgresql/config/connection', { value: connection }));
+    const configure = async () => await vault.write('mysql/config/lease', { lease: '1h', lease_max: '24h' })
+        .then(async () => await vault.write('mysql/config/connection', { value: connection }));
 
-const createRole = () => vault.write('postgresql/roles/readonly', { sql: query });
-const getCredentials = () => vault.read('postgresql/creds/readonly');
+    const createAdminRole = async () => await vault.write('mysql/roles/admin', { sql: adminQuery });
+    const createRole = async () => await vault.write('mysql/roles/readonly', { sql: query });
 
-const run = () => configure()
-    .then(createRole)
-    .then(getCredentials)
-    .then(console.log);
+    const getAdminCredentials = async () => await vault.read('mysql/creds/admin');
+    const getCredentials = async () => await vault.read('mysql/creds/readonly');
 
-vault.mounts()
-    .then((result) => {
-        if (result.hasOwnProperty('postgresql/')) return run();
-        return vault.mount({
-            mount_point: 'postgresql',
-            type: 'postgresql',
-            description: 'postgresql mount test',
-        }).then(run);
-    })
-    .catch((err) => console.error(err.message));
+    const run = async () => await configure()
+        .then(await createRole)
+        .then(await createAdminRole)
+        .then(await getCredentials)
+        .then(await getAdminCredentials)
+        .then(console.log);
+
+    await vault.mounts({mount_point: 'mysql', type: 'mysql', description: 'Mysql Server mount point'})
+        .then( async (result) => {
+            if (result.hasOwnProperty('mysql/')) return await run();
+            return await vault.mount({
+                mount_point: 'mysql',
+                type: 'mysql',
+                description: 'mysql mount test',
+            }).then(await run);
+        })
+        .catch((err) => console.error(err.message));
+}
+
+module.exports = {
+    init_mysql
+}

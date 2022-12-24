@@ -2,15 +2,17 @@
   "name": "api-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "./bin/api.js",
+  "main": "server/https/https.js",
   "scripts": {
-    "start": "node ./bin/api",
-    "dev": "nodemon ./bin/api",
+    "start": "node server/https/https.js ",
+    "dev": "nodemon server/https/https.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js"
   },
   "directories": {
-    "bin": "bin",
+    "server": "server",
+    "api": "backend/server/api",
+    "databases": "backend/server/databases",
     "src": "src",
     "controllers": "src/controllers",
     "middleware": "src/middleware",
@@ -29,7 +31,7 @@
     {
       "name": "Dellius Alexander",
       "email": "Dellius Alexander <dellius.alexander@gmail.com>",
-      "url": "https://github.com/dellius-Alexander/"
+      "url": "https://profile.delliusalexander.com"
     }
   ],
   "os": [

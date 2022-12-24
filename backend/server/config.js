@@ -16,10 +16,18 @@
 ////////////////////////////////////////////////////////////////
 const dotenv = require('dotenv');
 const path = require('path');
-const fs = require('fs');
+const {
+    existsSync
+} = require('fs');
+const {MongooseOptions} = require("mongoose");
+////////////////////////////////////////////////////////////////
+/**
+ * Initializes|Loads configuration from environment variables file.
+ * @returns {Promise<void>}
+ */
 async function config() {
     try {
-        if (fs.existsSync(path.join(__dirname.split("/")[0], '*.env'))) {
+        if (existsSync(path.join(__dirname.split("/")[0], '*.env'))) {
             const options = {
                 path: path.join(__dirname.split("/")[0], '*.env'),
                 encoding: 'utf8',
@@ -43,6 +51,27 @@ async function config() {
     }
 }
 ////////////////////////////////////////////////////////////////
+/**
+ * Mongoose configuration options
+ * @type {{useUnifiedTopology: boolean, keepAlive: boolean,
+ * socketTimeoutMS: number, family: number, useNewUrlParser: boolean,
+ * maxPoolSize: number, serverSelectionTimeoutMS: number,
+ * keepAliveInitialDelay: number, autoIndex: boolean}}
+ */
+const mongodb_options  = {
+    autoIndex: false, // Don't build indexes
+    maxPoolSize: 10, // Maintain up to 10 socket connections
+    serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+    socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    family: 4, // Use IPv4, skip trying IPv6
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    keepAliveInitialDelay: 300000,
+    keepAlive: true,
+};
+////////////////////////////////////////////////////////////////
+
 module.exports = {
-    config
+    config,
+    mongodb_options
 }

@@ -5,10 +5,10 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
     mode: 'development',
-    entry: './bin/api.js',
+    entry: 'backend/server',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'api.bundle.js',
+        filename: 'api_v1.bundle.js',
     },
     module: {
         rules: [{

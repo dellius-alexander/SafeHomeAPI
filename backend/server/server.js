@@ -14,15 +14,34 @@
  *    limitations under the License.
  */
 ////////////////////////////////////////////////////////////////
-// import environment variables
-////////////////////////////////////////////////////////////////
+/**
+ * Import server configuration
+ */
+const {config} = require('./config')
+config().catch(console.dir)
+
+// express router
+// const expressApp = require(`express/lib/router`);
+// instantiate express middleware
 const express = require('express');
+const server = express();
+
+/**
+ * Initialize database server
+ * @type {function(): Promise<void>}
+ */
+const db = require('./databases/mongodb')
+db().catch(console.dir)
+
 
 /**
  * Used for file upload support
  */
 const multer = require('multer');
 const upload = multer();
+// for parsing multipart/form-data
+server.use(upload.array());
+
 /**
  *  You will use this dependency to configure Express to add headers
  *  stating that your API accepts requests coming from other origins.
@@ -50,17 +69,11 @@ const helmet = require('helmet')
  * @type {(function((String|Function), Object=): function(*, *, *): void)|{compile?: *, format?: *, token?: *}}
  */
 const logger = require('morgan');
-// cryptographic signatures
-// const crypto = require('crypto');
 
 // start the vault server
-require("./src/services/vault/vault");
+require("../src/services/vault/main");
 
 
-// express router
-// const expressApp = require(`express/lib/router`);
-// instantiate express middleware
-const server = express();
 
 
 //By default, Express.js sends the X-Powered-By response header banner.
@@ -89,9 +102,6 @@ server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({
     extended: true
 }));
-
-// for parsing multipart/form-data
-server.use(upload.array());
 
 // export our app
 module.exports = server;
