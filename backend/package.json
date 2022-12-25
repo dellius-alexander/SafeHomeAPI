@@ -2,17 +2,18 @@
   "name": "api-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server/https/https.js",
+  "main": "server/protocols/https/https.js",
   "scripts": {
-    "start": "node server/https/https.js ",
-    "dev": "nodemon server/https/https.js",
+    "start": "node server/protocols/https/https.js ",
+    "dev": "nodemon server/protocols/https/https.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js"
   },
   "directories": {
     "server": "server",
-    "api": "backend/server/api",
-    "databases": "backend/server/databases",
+    "api": "server/api",
+    "databases": "server/databases",
+    "protocols": "server/protocols",
     "src": "src",
     "controllers": "src/controllers",
     "middleware": "src/middleware",

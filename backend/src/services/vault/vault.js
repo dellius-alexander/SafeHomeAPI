@@ -1,7 +1,6 @@
 const options = {
     apiVersion: 'v1',
-    endpoint: 'http://vault:8200',
-    token: 'U2FsdGVkX19BTBBZ2sNRH9r3'
+    endpoint: process.env.VAULT_URI
 };
 
 // get new instance of the client

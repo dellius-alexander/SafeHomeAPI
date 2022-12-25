@@ -124,10 +124,50 @@ function normalizePort(val) {
 
     return false;
 }
+// let counter = 0;
+// /**
+//  * Initializes vault server with an imposed delay in considerations of databases,
+//  * vault and server startup time.
+//  * @param milliseconds timeout counter in milliseconds
+//  * @param {Promise|boolean} status function|boolean status check, it must return a boolean
+//  * or be a boolean
+//  * @param {Function|null} func A function to be executed after the timer expires.
+//  * @returns {Promise<null>}
+//  */
+// async function delay ( milliseconds = 3000 ,status= null,  func = null){
+//     let timer = null;
+//     try{
+//         if (func === null || status === null) throw new Error("Function parameter 2 (status) and 3 (func) must not be null.")
+//         // initiate the loop
+//         while ( await status() === false) {
+//             console.dir(`Attempt: ${counter}`)
+//             timer = setTimeout(await func, milliseconds)
+//             console.dir(`Timer: ${timer}`)
+//             // check for race condition and clear timeout before race condition occurs
+//             if ( counter > 10  || await status() === true ) {
+//                 clearTimeout(timer);
+//                 break;
+//             }
+//             counter += 1
+//         };
+//
+//     } catch (e) {
+//         console.error('Delay error: ')
+//         console.dir(e);
+//         e.stackTrace
+//     }
+// }
+
+const initCallback = async function(res){
+    console.dir(res);
+}
+
+
 module.exports = {
     isEmpty,
     checkForSearchFilters,
     queryMessageFilter,
-    normalizePort
+    normalizePort,
+    initCallback
 }
 

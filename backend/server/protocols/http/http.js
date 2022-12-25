@@ -14,8 +14,8 @@
  *    limitations under the License.
  */
 
-const app = require('../api/v1/routes.js')
-const { normalizePort } = require(process.env.BASEDIR + '/src/utils/helpers')
+const app = require('../../api/v1/routes.js')
+const { normalizePort } = require('../../../src/utils/helpers')
 
 /**
  * Http Server object.

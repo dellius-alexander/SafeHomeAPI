@@ -167,12 +167,33 @@ $ vault write database/roles/my-role \
 
 ---
 
-<h2><a href="#" id="start_in_dev_mode">Start Vault Server in Dev Mode</a></h2>
+<h3><a href="#" id="start_in_dev_mode">Start Vault Server in Dev Mode</a></h3>
 
 ```bash
 $ vault server -dev -dev-root-token-id=${VAULT_TOKEN}
 ```
 
+<h3><a href="#" id="start_in_dev_mode">Check Vault Status</a></h3>
+
+
+```bash
+$ vault status
+
+{
+   type: 'shamir',
+   initialized: false,
+   sealed: true,
+   t: 0,
+   n: 0,
+   progress: 0,
+   nonce: '',
+   version: '1.12.2',
+   build_date: '2022-11-23T12:53:46Z',
+   migration: false,
+   recovery_seal: false,
+   storage_type: 'mysql'
+}
+```
 <hr/>
 <h4><a href="#" id="references">References:</a></h4>
 

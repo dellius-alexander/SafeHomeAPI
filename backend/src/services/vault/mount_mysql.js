@@ -7,17 +7,45 @@ const vault = require('./vault');
  */
 async function init_mysql() {
 
-    const connection = '{{username}}:{{password}}@tcp(mysql-server:3306)/';
+    const connection = 'vault:password@tcp(mysql-server:3306)/';
 
     const adminQuery = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT ALL PRIVILEGES ON *.* TO '{{name}}'@'%';";
 
     const query = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON secrets.* TO '{{name}}'@'%';";
 
-    const configure = async () => await vault.write('mysql/config/lease', { lease: '1h', lease_max: '24h' })
-        .then(async () => await vault.write('mysql/config/connection', { value: connection }));
+    const configure = async () => {
+        await vault.write(
+            'mysql/config/lease',
+            {lease: '1h', lease_max: '24h'})
+            .then(async () => await vault.write(
+                'mysql/config/connection',
+                {value: connection},
+                {
+                    username: "vault",
+                    password: "password",
+                    plugin_name: "mysql-database-plugin"}))
+    };
 
-    const createAdminRole = async () => await vault.write('mysql/roles/admin', { sql: adminQuery });
-    const createRole = async () => await vault.write('mysql/roles/readonly', { sql: query });
+    const createAdminRole = async () => {
+        await vault.write(
+            'mysql/roles/admin',
+            {sql: adminQuery},
+            {
+                name: "admin",
+                password: "password",
+                plugin_name: "mysql-database-plugin"
+            })
+    };
+    const createRole = async () => {
+        await vault.write(
+            'mysql/roles/readonly',
+            {sql: query},
+            {
+                name: "readonly",
+                password: "password",
+                plugin_name: "mysql-database-plugin"
+            })
+    };
 
     const getAdminCredentials = async () => await vault.read('mysql/creds/admin');
     const getCredentials = async () => await vault.read('mysql/creds/readonly');
