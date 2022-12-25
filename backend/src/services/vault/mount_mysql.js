@@ -1,4 +1,8 @@
 const vault = require('./vault');
+const {readFileSync} = require("fs");
+
+const vault_keys = JSON.parse(readFileSync(process.env.VAULT_CLUSTER_CRED_JSON_FILE.toString(), 'utf-8'))
+vault.token = vault_keys.root_token
 
 /**
  * Initialize mysql database as the vault secret storage engine.
@@ -6,8 +10,13 @@ const vault = require('./vault');
  * @returns {Promise<void>}
  */
 async function init_mysql() {
+    let requestOptions = {
+        path: "/safehomeapi",
+        method: "GET",
+        dbName: "safehomeapi"
+    }
 
-    const connection = 'vault:password@tcp(mysql-server:3306)/';
+    const connection = "vault:password@tcp(mysql-server:3306)/safehomeapi";
 
     const adminQuery = "CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT ALL PRIVILEGES ON *.* TO '{{name}}'@'%';";
 
@@ -19,32 +28,18 @@ async function init_mysql() {
             {lease: '1h', lease_max: '24h'})
             .then(async () => await vault.write(
                 'mysql/config/connection',
-                {value: connection},
-                {
-                    username: "vault",
-                    password: "password",
-                    plugin_name: "mysql-database-plugin"}))
+                {value: connection}))
     };
 
     const createAdminRole = async () => {
         await vault.write(
             'mysql/roles/admin',
-            {sql: adminQuery},
-            {
-                name: "admin",
-                password: "password",
-                plugin_name: "mysql-database-plugin"
-            })
+            {sql: adminQuery})
     };
     const createRole = async () => {
         await vault.write(
             'mysql/roles/readonly',
-            {sql: query},
-            {
-                name: "readonly",
-                password: "password",
-                plugin_name: "mysql-database-plugin"
-            })
+            {sql: query})
     };
 
     const getAdminCredentials = async () => await vault.read('mysql/creds/admin');
